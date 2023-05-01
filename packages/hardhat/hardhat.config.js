@@ -13,7 +13,7 @@ const { isAddress, getAddress, formatUnits, parseUnits } = utils;
 /*
       📡 This is where you configure your deploy configuration for 🏗 scaffold-eth
 
-      Scaffold-Eth uses `hardhat-deploy` to manage deployments (see the <./deploy> dir); 
+      Scaffold-Eth uses `hardhat-deploy` to manage deployments (see the <./deploy> dir);
       and learn more at <https://www.npmjs.com/package/hardhat-deploy>.
       Also there is deprecated <./scripts/deploy.js> left for reference.
 
