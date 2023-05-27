@@ -4,9 +4,10 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract OrderBook is Ownable {
+contract OrderBook {
+    address immutable _owner;
 
-    event OrderExecuted(address buyOrderAddress, uint256 indexed buyOrderAmount, address sellOrderAddress, uint256 indexed sellOrderAmount);
+    event OrderExecuted(address token1Address, uint256 indexed token1Amount, address token2Address, uint256 indexed token2Amount);
     event RemainingOrder(address remainderAddress, uint256 indexed buyOrderAmount, uint256 indexed sellOrderAmount);
 
     struct Order {
@@ -23,13 +24,15 @@ contract OrderBook is Ownable {
 
     }
 
-    constructor(address owner){
-        transferOwnership(owner);
+    constructor(address owner_){
+        _owner = owner_;
+        //        transferOwnership(owner_);
     }
 
-    //
-
-    function executeOrder(Order calldata buyOrder, Order calldata sellOrder) public onlyOwner {
+    function executeOrder(Order calldata buyOrder, Order calldata sellOrder) external {
+        require(buyOrder.deadline >= block.timestamp, "Buy Order Expired");
+        require(sellOrder.deadline >= block.timestamp, "Sell Order Expired");
+        require(msg.sender == _owner, "Unauthorized Action");
         require(buyOrder.buyTokenAddress == sellOrder.sellTokenAddress, "Invalid Pair");
         require(buyOrder.sellTokenAddress == sellOrder.buyTokenAddress, "Invalid Pair");
         require(buyOrder.buyTokenAmount / sellOrder.sellTokenAmount == buyOrder.sellTokenAmount / sellOrder.buyTokenAmount, "Orders are not matching 1");
@@ -50,7 +53,7 @@ contract OrderBook is Ownable {
             // buy order sell token ( = sell order buy token) transfer
             ERC20(sellOrder.buyTokenAddress).transferFrom(buyOrder.executor, sellOrder.executor, buyOrder.sellTokenAmount);
 
-            emit OrderExecuted(buyOrder.buyTokenAddress, sellOrder.sellTokenAmount, buyOrder.sellTokenAddress, sellOrder.buyTokenAmount);
+            emit OrderExecuted(buyOrder.buyTokenAddress, buyOrder.buyTokenAmount, buyOrder.sellTokenAddress, buyOrder.sellTokenAmount);
             emit RemainingOrder(sellOrder.executor, sellOrder.sellTokenAmount - buyOrder.buyTokenAmount, sellOrder.buyTokenAmount - buyOrder.sellTokenAmount);
 
         }
